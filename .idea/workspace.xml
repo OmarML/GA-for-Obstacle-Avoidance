@@ -44,8 +44,8 @@
       <file leaf-file-name="Neural.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Neural.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="540">
-              <caret line="36" column="0" lean-forward="true" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
+            <state relative-caret-position="322">
+              <caret line="36" column="16" lean-forward="false" selection-start-line="36" selection-start-column="16" selection-end-line="36" selection-end-column="16" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -98,9 +98,9 @@
         <option value="$PROJECT_DIR$/Robot.py" />
         <option value="$PROJECT_DIR$/ProcessData.py" />
         <option value="$PROJECT_DIR$/Pygame.py" />
-        <option value="$PROJECT_DIR$/Neural.py" />
         <option value="$PROJECT_DIR$/Sensor.py" />
         <option value="$PROJECT_DIR$/Pedestrian.py" />
+        <option value="$PROJECT_DIR$/Neural.py" />
       </list>
     </option>
   </component>
@@ -711,8 +711,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Neural.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="36" column="0" lean-forward="true" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
+        <state relative-caret-position="322">
+          <caret line="36" column="16" lean-forward="false" selection-start-line="36" selection-start-column="16" selection-end-line="36" selection-end-column="16" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>

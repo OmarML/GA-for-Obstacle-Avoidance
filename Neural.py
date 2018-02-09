@@ -34,7 +34,7 @@ class NeuralNetwork:
 						new_X = self.activation(new_X, htan=True)
 				return new_X
 
-
+# testing github
 
 # nn = NeuralNetwork(inputs=3, hidden_layers=1, hidden_neurons=3, outputs=2)
 # print(nn.weights)
