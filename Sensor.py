@@ -35,8 +35,8 @@ class Robot:
 
 		def move(self):
 				if self.alive:
-					self.x += self.brain.Forward([(sensor.reading) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
-					self.y += self.brain.Forward([(sensor.reading) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
+					self.x += self.brain.Forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
+					self.y += self.brain.Forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
 					self.robot_angle += self.brain.Forward([(sensor.reading/self.max_range) for sensor in self.sensors])[1]
 					print(self.brain.Forward([(sensor.reading) for sensor in self.sensors]))
 				# 	self.x += self.speed * m.cos(m.radians(self.robot_angle))
