@@ -2,13 +2,14 @@ import random
 import pygame
 from Pygame import width, height
 from ProcessData import My_Trajectory_Dict, Pedestrian_IDs, new_list
-from Sensor import Robot, Sensor
+from Sensor import Robot
 
 pygame.init()
 background_colour = (0, 0, 0)
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Omar's Simulation")
 screen.fill(background_colour)
+target_location = (800, 300)
 
 
 class Pedestrian:
@@ -71,7 +72,19 @@ all = Manager(all_pedestrians, 15)
 
 robots = []
 for i in range(1):
-	robots.append(Robot(200, 300, 8, 360, 15, all))
+	robots.append(Robot(200, 300, 8, 360, 9, all))
+
+# some class here maybe to manage all robots
+
+def check_if_all_dead():
+		print([robot.alive for robot in robots])
+		# print([robot.DNA for robot in robots])
+
+def choose_best():
+		pass
+
+def make_next_generation():
+		pass
 
 
 running = True
@@ -81,6 +94,8 @@ while running:
 						running = False
 		screen.fill(background_colour)
 		pygame.draw.rect(screen, (255, 255, 255), (10, 10, width-20, height-20), 1)
+		pygame.draw.circle(screen, (255, 10, 0), target_location, 10, 0)
+		# check_if_all_dead()
 		# pygame.draw.polygon(screen, (255, 255, 255), new_list, 1)
 		for pedestrian in all.start_pedestrians:
 				pedestrian.move()
@@ -89,6 +104,7 @@ while running:
 		for robot in robots:
 				robot.move()
 				robot.update()
+				# robot.evaluate_fitness()
 				# robot.display_readings()
 		pygame.display.update()
-		# pygame.time.Clock().tick(10000)
+		# pygame.time.Clock().tick(10000)?

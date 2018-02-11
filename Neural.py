@@ -27,7 +27,7 @@ class NeuralNetwork:
 				self.weights.append(wl)
 				return self.weights
 
-		def Forward(self, X):
+		def forward(self, X):
 				new_X = self.activation(np.dot(X, self.weights[0]), htan=True)
 				for i in self.weights[1:]:
 						new_X = np.dot(new_X, i)
@@ -37,5 +37,8 @@ class NeuralNetwork:
 # testing github
 
 # nn = NeuralNetwork(inputs=3, hidden_layers=1, hidden_neurons=3, outputs=2)
-# print(nn.weights)
-# print(nn.Forward([55,0.03,0.3]))
+# a = nn.weights
+# print(a)
+# print([np.ravel(i) for i in a])
+
+# print(nn.forward([55,0.03,0.3,9]))

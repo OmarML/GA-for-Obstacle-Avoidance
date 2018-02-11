@@ -6,7 +6,6 @@ import random
 import Neural
 from Vec2d import Vec2d
 
-
 class Robot:
 		def __init__(self, x, y, size, field_of_view, num_sensors, manager):
 				self.x = x
@@ -22,6 +21,7 @@ class Robot:
 				self.alive = True
 				self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2) # this will be the neural network which makes the decision based on sensor inputs
 				self.DNA = self.brain.weights # this will be an array which contains the all weights of the NN
+				self.fitness = self.evaluate_fitness()
 				angle = field_of_view / num_sensors
 				angle_const = field_of_view / num_sensors
 				temp = int(num_sensors / 2)
@@ -35,10 +35,10 @@ class Robot:
 
 		def move(self):
 				if self.alive:
-					self.x += self.brain.Forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
-					self.y += self.brain.Forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
-					self.robot_angle += self.brain.Forward([(sensor.reading/self.max_range) for sensor in self.sensors])[1]
-					print(self.brain.Forward([(sensor.reading) for sensor in self.sensors]))
+					self.x += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
+					self.y += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
+					self.robot_angle += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[1]
+					print(self.brain.forward([(sensor.reading) for sensor in self.sensors]))
 				# 	self.x += self.speed * m.cos(m.radians(self.robot_angle))
 				# 	self.y += self.speed * m.sin(m.radians(self.robot_angle))
 				# 	self.robot_angle += self.angle
@@ -50,12 +50,17 @@ class Robot:
 								sensor.draw_sensor(self)
 								sensor.detect(self.manager)
 								sensor.collide(self, self.manager)
+								# sensor.evaluate_fitness(self)
 						# print([sensor.reading for sensor in self.sensors])
 						# print("Sensor reading {} is:{}".format(sensor.id, sensor.reading)) # need to think about this line
 
-		def display_readings(self):
-				if self.alive:
-					print([sensor.reading for sensor in self.sensors])
+		def evaluate_fitness(self):
+				robot_pos = Vec2d(self.x, self.y)
+				target_pos = (800, 300)
+				print(robot_pos.get_distance(target_pos))
+				# pygame.draw.line(screen, (0, 255, 0), (self.x, self.y), (800, 300))
+				return robot_pos.get_distance(target_pos)
+
 
 
 class Sensor:
@@ -82,12 +87,14 @@ class Sensor:
 		def draw_sensor(self, robot):
 				self.update_sensor_pos(robot)
 				pygame.draw.line(screen, (0, 0, 255), (self.x0, self.y0), (self.x1, self.y1))
+				if self.id == 0:
+						pygame.draw.line(screen, (0, 0, 0), (robot.x, robot.y), (self.x0, self.y0))
 				pygame.draw.circle(screen, (255, 0, 0), (int(self.x0), int(self.y0)), 1, 0)
 				pygame.draw.circle(screen, (255, 0, 0), (int(self.x1), int(self.y1)), 1, 0)
 
 		def detect(self, manager):
-				M = (self.y1 - self.y0) / (self.x1 - self.x0)
-				c = self.y0 - (self.x0 * M)
+				# M = (self.y1 - self.y0) / (self.x1 - self.x0)
+				# c = self.y0 - (self.x0 * M)
 				for pedestrian in manager.start_pedestrians:
 						# https://math.stackexchange.com/questions/228841/how-do-i-calculate-the-intersections-of-a-straight-line-and-a-circle
 						h = (pedestrian.x + width/2)
@@ -126,6 +133,14 @@ class Sensor:
 						distance = robot_pos.get_distance(pedestrian_pos)
 						if distance <= robot.size + pedestrian.size:
 								robot.alive = False
+
+
+		def evaluate_fitness(self, robot):
+				robot_pos = Vec2d(robot.x, robot.y)
+				target_pos = Vec2d(800, 300)
+				pygame.draw.line(screen, (255,0,0), (robot.x, robot.y), (800, 300))
+				# print(robot_pos.get_distance(target_pos))
+				return robot_pos.get_distance(target_pos)
 
 
 
