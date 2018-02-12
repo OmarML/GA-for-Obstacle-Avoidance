@@ -1,6 +1,7 @@
 import random
 import math as m
 import numpy as np
+import functools
 
 
 class NeuralNetwork:
@@ -36,9 +37,13 @@ class NeuralNetwork:
 
 # testing github
 
-# nn = NeuralNetwork(inputs=3, hidden_layers=1, hidden_neurons=3, outputs=2)
-# a = nn.weights
-# print(a)
-# print([np.ravel(i) for i in a])
+nn = NeuralNetwork(inputs=3, hidden_layers=1, hidden_neurons=3, outputs=2)
+a = nn.weights
+print([np.shape(i) for i in a])
+print(a)
+print([np.ravel(i) for i in a])
+b = (np.concatenate([np.ravel(i) for i in a]))
+print(b)
+print(np.shape(b))
 
 # print(nn.forward([55,0.03,0.3,9]))

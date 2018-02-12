@@ -12,6 +12,9 @@ screen.fill(background_colour)
 target_location = (800, 300)
 
 
+elitism = 0.1
+
+
 class Pedestrian:
 		def __init__(self, x, y, size, id, trajectory):
 				self.x = x
@@ -76,15 +79,31 @@ for i in range(1):
 
 # some class here maybe to manage all robots
 
-def check_if_all_dead():
-		print([robot.alive for robot in robots])
-		# print([robot.DNA for robot in robots])
 
-def choose_best():
-		pass
+def check_if_all_dead():
+		dead_count = 0
+		for robot in robots:
+				if not robot.alive:
+						dead_count += 1
+		if dead_count == len(robots):
+				return True
+
+
+def choose_fittest(elitism):
+		if check_if_all_dead():
+				robots.sort(key=lambda x: x.fitness)
+				print("1: ", [robot.fitness for robot in robots])
+				return robots[-elitism:]
+
 
 def make_next_generation():
 		pass
+
+
+
+
+
+
 
 
 running = True
@@ -95,7 +114,6 @@ while running:
 		screen.fill(background_colour)
 		pygame.draw.rect(screen, (255, 255, 255), (10, 10, width-20, height-20), 1)
 		pygame.draw.circle(screen, (255, 10, 0), target_location, 10, 0)
-		# check_if_all_dead()
 		# pygame.draw.polygon(screen, (255, 255, 255), new_list, 1)
 		for pedestrian in all.start_pedestrians:
 				pedestrian.move()
@@ -104,7 +122,9 @@ while running:
 		for robot in robots:
 				robot.move()
 				robot.update()
-				# robot.evaluate_fitness()
-				# robot.display_readings()
+				robot.evaluate_fitness()
+		choose_fittest(3)
+		make_next_generation()
+
 		pygame.display.update()
-		# pygame.time.Clock().tick(10000)?
+		# pygame.time.Clock().tick(10000)
