@@ -37,13 +37,59 @@ class NeuralNetwork:
 
 # testing github
 
-nn = NeuralNetwork(inputs=3, hidden_layers=1, hidden_neurons=3, outputs=2)
-a = nn.weights
-print([np.shape(i) for i in a])
-print(a)
-print([np.ravel(i) for i in a])
-b = (np.concatenate([np.ravel(i) for i in a]))
-print(b)
-print(np.shape(b))
 
-# print(nn.forward([55,0.03,0.3,9]))
+def convert_to_genome(weights_array):
+		return np.concatenate([np.ravel(i) for i in a])
+
+
+def convert_to_weights(genome, weights_array):
+		shapes = [np.shape(i) for i in weights_array]
+		# print(shapes)
+		products = ([(i[0] * i[1]) for i in shapes])
+		# print (products)
+		out = []
+		start = 0
+		for i in range(len(products)):
+				# print(sum(products[:i+1]))
+				# print(start, sum(products[:i+1]))
+				out.append(np.reshape(genome[start:sum(products[:i+1])], shapes[i]))
+				start += products[i]
+		return out
+
+
+
+
+
+
+if __name__ == '__main__':
+		nn = NeuralNetwork(inputs=4, hidden_layers=1, hidden_neurons=3, outputs=2)
+		a = nn.weights
+		print(a)
+		genome = convert_to_genome(a)
+		# print(genome)
+		weights = convert_to_weights(genome, a)
+		print(weights)
+		# print(np.array_equal(a, weights))
+		print(np.array_equal(weights[0], a[0]))
+		print(np.array_equal(weights[1], a[1]))
+		# print(np.array_equal(weights[2], a[2]))
+		print(a is type(weights))
+# 		print(len(a))
+# 		shapes = ([np.shape(i) for i in a])
+# 		# print(shapes)
+# 		# functools.reduce(lambda (x: x*y, [np.shape(i) for i in a])
+# 		print([(i[0]*i[1]) for i in shapes])
+# 		print(a)
+#
+# 		print([np.ravel(i) for i in a])
+# 		b = (np.concatenate([np.ravel(i) for i in a]))
+# 		print(b)
+# 		# print(np.shape(b))
+# 		# c = np.reshape(b[0:(9*16)], (9,16))
+# 		# d = np.reshape(b[(9*16):(16*16)+(9*16)], (16,16))
+# 		# e = np.reshape(b[(9*16)+(16*16):], (16, 2))
+# 		# print(a[0])
+# 		# print(np.array_equal(c, a[0]))
+# 		# print(np.array_equal(d, a[1]))
+# 		# print(np.array_equal(e, a[2]))
+# # print(nn.forward([55,0.03,0.3,9]))

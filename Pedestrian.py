@@ -3,6 +3,7 @@ import pygame
 from Pygame import width, height
 from ProcessData import My_Trajectory_Dict, Pedestrian_IDs, new_list
 from Sensor import Robot
+import numpy as np
 
 pygame.init()
 background_colour = (0, 0, 0)
@@ -74,33 +75,50 @@ for pedestrian in Pedestrian_IDs:
 all = Manager(all_pedestrians, 15)
 
 robots = []
-for i in range(1):
+for i in range(10):
 	robots.append(Robot(200, 300, 8, 360, 9, all))
 
+
 # some class here maybe to manage all robots
+class Darwin:
+		def __init__(self, robot_array, elitism, mutation_rate):
+				self.robot_array = robot_array
+				self.generation = 0
+				self.elitism = elitism
+				self.mutation_rate = mutation_rate
+
+		def check_if_all_dead(self):
+				dead_count = 0
+				for robot in self.robot_array:
+						if not robot.alive:
+								dead_count += 1
+				if dead_count == len(self.robot_array):
+						return True
+
+		def choose_fittest(self, elitism):
+				if self.check_if_all_dead():
+						self.robot_array.sort(key=lambda x: x.fitness)
+						print("1: ", [robot.fitness for robot in self.robot_array])
+						return self.robot_array[-elitism:]
+
+		def convert_to_genome(self, weights_array):
+				np.concatenate([np.ravel(i) for i in weights_array])
+
+		def convert_to_weight(self, genome, weights_array):
+				shapes = [np.shape(i) for i in weights_array]
+				products = ([(i[0] * i[1]) for i in shapes])
+				out = []
+				start = 0
+				for i in range(len(products)):
+						out.append(np.reshape(genome[start:sum(products[:i + 1])], shapes[i]))
+						start += products[i]
+				return out
+
+		def make_next_generation(self):
+				pass
 
 
-def check_if_all_dead():
-		dead_count = 0
-		for robot in robots:
-				if not robot.alive:
-						dead_count += 1
-		if dead_count == len(robots):
-				return True
-
-
-def choose_fittest(elitism):
-		if check_if_all_dead():
-				robots.sort(key=lambda x: x.fitness)
-				print("1: ", [robot.fitness for robot in robots])
-				return robots[-elitism:]
-
-
-def make_next_generation():
-		pass
-
-
-
+darwin = Darwin(robot_array=robots, elitism=4, mutation_rate=1)
 
 
 
@@ -123,8 +141,8 @@ while running:
 				robot.move()
 				robot.update()
 				robot.evaluate_fitness()
-		choose_fittest(3)
-		make_next_generation()
+		darwin.choose_fittest(4)
+		darwin.make_next_generation()
 
 		pygame.display.update()
 		# pygame.time.Clock().tick(10000)

@@ -22,6 +22,7 @@ class Robot:
 				self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2) # this will be the neural network which makes the decision based on sensor inputs
 				self.DNA = self.brain.weights # this will be an array which contains the all weights of the NN
 				self.fitness = None
+
 				angle = field_of_view / num_sensors
 				angle_const = field_of_view / num_sensors
 				temp = int(num_sensors / 2)
@@ -35,10 +36,10 @@ class Robot:
 
 		def move(self):
 				if self.alive:
-					self.x += 2*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
-					self.y += 2*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
+					self.x += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
+					self.y += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
 					self.robot_angle += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[1] # this changes between -1 and 1 degrees per decision
-					print(self.brain.forward([(sensor.reading) for sensor in self.sensors]))
+				# 	print(self.brain.forward([(sensor.reading) for sensor in self.sensors]))
 				# 	self.x += self.speed * m.cos(m.radians(self.robot_angle))
 				# 	self.y += self.speed * m.sin(m.radians(self.robot_angle))
 				# 	self.robot_angle += self.angle
