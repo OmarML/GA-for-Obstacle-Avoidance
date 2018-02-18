@@ -4,6 +4,7 @@ import math as m
 import numpy as np
 import random
 import Neural
+import time
 from Vec2d import Vec2d
 
 class Robot:
@@ -22,6 +23,7 @@ class Robot:
 				self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2) # this will be the neural network which makes the decision based on sensor inputs
 				self.DNA = self.brain.weights # this will be an array which contains the all weights of the NN
 				self.fitness = None
+				self.time_alive = time.time()
 
 				angle = field_of_view / num_sensors
 				angle_const = field_of_view / num_sensors
@@ -36,8 +38,8 @@ class Robot:
 
 		def move(self):
 				if self.alive:
-					self.x += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
-					self.y += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
+					self.x += 2*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
+					self.y += 2*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
 					self.robot_angle += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[1] # this changes between -1 and 1 degrees per decision
 				# 	print(self.brain.forward([(sensor.reading) for sensor in self.sensors]))
 				# 	self.x += self.speed * m.cos(m.radians(self.robot_angle))
@@ -45,12 +47,14 @@ class Robot:
 				# 	self.robot_angle += self.angle
 
 		def update(self):
-				pygame.draw.circle(screen, self.colour, (int(self.x), int(self.y)), self.size, 0)
 				if self.alive:
+						pygame.draw.circle(screen, self.colour, (int(self.x), int(self.y)), self.size, 0)
 						for sensor in self.sensors:
 								sensor.draw_sensor(self)
 								sensor.detect(self.manager)
 								sensor.collide(self, self.manager)
+				if time.time() - self.time_alive > 20: # add condition to check if fitness isnt changing much not just time for killing
+						self.alive = False
 								# sensor.evaluate_fitness(self)
 						# print([sensor.reading for sensor in self.sensors])
 						# print("Sensor reading {} is:{}".format(sensor.id, sensor.reading)) # need to think about this line

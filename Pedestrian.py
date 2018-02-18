@@ -13,7 +13,6 @@ screen.fill(background_colour)
 target_location = (800, 300)
 
 
-elitism = 0.1
 
 
 class Pedestrian:
@@ -74,8 +73,12 @@ for pedestrian in Pedestrian_IDs:
 
 all = Manager(all_pedestrians, 15)
 
+
+population_size = 10
+elitism = 4
+
 robots = []
-for i in range(10):
+for i in range(population_size):
 	robots.append(Robot(200, 300, 8, 360, 9, all))
 
 
@@ -84,8 +87,10 @@ class Darwin:
 		def __init__(self, robot_array, elitism, mutation_rate):
 				self.robot_array = robot_array
 				self.generation = 0
+				self.population_size = population_size
 				self.elitism = elitism
 				self.mutation_rate = mutation_rate
+				self.best_fitness = 0
 
 		def check_if_all_dead(self):
 				dead_count = 0
@@ -95,14 +100,22 @@ class Darwin:
 				if dead_count == len(self.robot_array):
 						return True
 
-		def choose_fittest(self, elitism):
-				if self.check_if_all_dead():
-						self.robot_array.sort(key=lambda x: x.fitness)
-						print("1: ", [robot.fitness for robot in self.robot_array])
-						return self.robot_array[-elitism:]
+		def choose_parents(self):
+				# self.robot_array.sort(key=lambda x: x.fitness)
+				max_fitness = max([robot.fitness for robot in self.robot_array])
+				if max_fitness > self.best_fitness:
+						self.best_fitness = max_fitness
+				print("Highest fitness is: {}".format(self.best_fitness))
+				upper_limit = sum([robot.fitness for robot in self.robot_array])
+				pick = random.uniform(0, upper_limit)
+				current = 0
+				for robot in self.robot_array:
+						current += robot.fitness
+						if current > pick:
+								return robot
 
 		def convert_to_genome(self, weights_array):
-				np.concatenate([np.ravel(i) for i in weights_array])
+				return np.concatenate([np.ravel(i) for i in weights_array])
 
 		def convert_to_weight(self, genome, weights_array):
 				shapes = [np.shape(i) for i in weights_array]
@@ -114,35 +127,64 @@ class Darwin:
 						start += products[i]
 				return out
 
+		def create_child(self, parent1, parent2):
+				parent1_genome = self.convert_to_genome(parent1.DNA)
+				parent2_genome = self.convert_to_genome(parent2.DNA)
+				child_genome = []
+				for i in range(len(parent1_genome)):
+						if random.random() > 0.5:
+								child_genome.append(parent1_genome[i])
+						else:
+								child_genome.append(parent2_genome[i])
+				return self.convert_to_weight(child_genome, parent1.DNA) # the return value is a weights array
+
 		def make_next_generation(self):
-				pass
+				breeders = self.choose_fittest()
+				# offspring = [self.convert_to_genome(self.robot_array[i].DNA) for i in range(len(breeders))]
+				offspring = [] # need to include breeders in offspring list i.e parents from nth gen should be in the n+1th generation
+				# number_of_children = (self.population_size - len(breeders)) / (len(breeders) / 2)
+				for i in range(int(len(breeders)/2)):
+						for j in range(int(5)):
+								offspring.append(self.create_child(breeders[i], breeders[len(breeders) - 1 - i]))
+				# print(offspring)
+				# weights = [self.convert_to_weight(i, self.robot_array[0].DNA) for i in offspring]
+				self.robot_array.extend([Robot(200, 300, 8, 360, 9, all) for i in range(self.population_size)])
+				for i in range(self.population_size):
+						if self.robot_array[i].alive:
+								self.robot_array[i].DNA = offspring[i]
+				# print(self.robot_array)
+
+
+
 
 
 darwin = Darwin(robot_array=robots, elitism=4, mutation_rate=1)
 
 
 
+if __name__ == '__main__':
 
+		running = False
+		while running:
+				for event in pygame.event.get():
+						if event.type == pygame.QUIT:
+								running = False
+				screen.fill(background_colour)
+				pygame.draw.rect(screen, (255, 255, 255), (10, 10, width-20, height-20), 1)
+				pygame.draw.circle(screen, (255, 10, 0), target_location, 10, 0)
+				# pygame.draw.polygon(screen, (255, 255, 255), new_list, 1)
+				for pedestrian in all.start_pedestrians:
+						pass
+						pedestrian.move()
+						pedestrian.update()
+						all.introduce()
+				for robot in robots:
+						robot.move()
+						robot.update()
+						robot.evaluate_fitness()
+				if darwin.check_if_all_dead():
+						# darwin.choose_fittest() # no reason to actually call this here, since make_next_generation calls this function
+						darwin.make_next_generation()
 
-running = True
-while running:
-		for event in pygame.event.get():
-				if event.type == pygame.QUIT:
-						running = False
-		screen.fill(background_colour)
-		pygame.draw.rect(screen, (255, 255, 255), (10, 10, width-20, height-20), 1)
-		pygame.draw.circle(screen, (255, 10, 0), target_location, 10, 0)
-		# pygame.draw.polygon(screen, (255, 255, 255), new_list, 1)
-		for pedestrian in all.start_pedestrians:
-				pedestrian.move()
-				pedestrian.update()
-				all.introduce()
-		for robot in robots:
-				robot.move()
-				robot.update()
-				robot.evaluate_fitness()
-		darwin.choose_fittest(4)
-		darwin.make_next_generation()
-
-		pygame.display.update()
-		# pygame.time.Clock().tick(10000)
+				pygame.display.update()
+				# pygame.time.Clock().tick(10000)

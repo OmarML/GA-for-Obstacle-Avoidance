@@ -24,7 +24,7 @@ class NeuralNetwork:
 				self.weights = []
 				self.weights.append(w1)
 				for i in range(self.hidden_layers - 1):
-						self.weights.append(np.random.rand(self.hidden_neurons, self.hidden_neurons))
+						self.weights.append(np.random.randn(self.hidden_neurons, self.hidden_neurons))
 				self.weights.append(wl)
 				return self.weights
 
@@ -64,9 +64,19 @@ def convert_to_weights(genome, weights_array):
 if __name__ == '__main__':
 		nn = NeuralNetwork(inputs=4, hidden_layers=1, hidden_neurons=3, outputs=2)
 		a = nn.weights
+		print(nn.forward([21, 34, 55, 12]))
 		print(a)
+		nn.weights = [np.array([[-0.18569203, -1.15955254,  0.98317866],
+       [-0.6967923 ,  0.68024923, -0.15005902],
+       [ 0.6443928 , -2.061897  ,  1.10600649],
+       [ 1.59231743, -2.21725663, -1.20812529]]), np.array([[-0.21087811, -0.59785633],
+       [-0.07869691,  0.04648555],
+       [-1.10778754,  1.7161734 ]])]
+
+		print(nn.weights)
+		print(nn.forward([21, 34, 55, 12]))
 		genome = convert_to_genome(a)
-		# print(genome)
+		print(genome)
 		weights = convert_to_weights(genome, a)
 		print(weights)
 		# print(np.array_equal(a, weights))
