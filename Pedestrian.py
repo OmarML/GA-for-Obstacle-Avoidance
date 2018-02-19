@@ -79,7 +79,7 @@ elitism = 4
 
 robots = []
 for i in range(population_size):
-	robots.append(Robot(200, 300, 8, 360, 9, all))
+	robots.append(Robot(50, 300, 8, 360, 9, all))
 
 
 # some class here maybe to manage all robots
@@ -91,6 +91,7 @@ class Darwin:
 				self.elitism = elitism
 				self.mutation_rate = mutation_rate
 				self.best_fitness = 0
+				self.number_of_parents = 4
 
 		def check_if_all_dead(self):
 				dead_count = 0
@@ -127,7 +128,7 @@ class Darwin:
 						start += products[i]
 				return out
 
-		def create_child(self, parent1, parent2):
+		def create_child(self, parent1, parent2):  # Uniform crossover
 				parent1_genome = self.convert_to_genome(parent1.DNA)
 				parent2_genome = self.convert_to_genome(parent2.DNA)
 				child_genome = []
@@ -139,19 +140,23 @@ class Darwin:
 				return self.convert_to_weight(child_genome, parent1.DNA) # the return value is a weights array
 
 		def make_next_generation(self):
-				breeders = self.choose_fittest()
+				breeders = []
+				for i in range(self.number_of_parents):
+						breeders.append(self.choose_parents())
 				# offspring = [self.convert_to_genome(self.robot_array[i].DNA) for i in range(len(breeders))]
 				offspring = [] # need to include breeders in offspring list i.e parents from nth gen should be in the n+1th generation
+				offspring += breeders # Include parents in the n+1th generation
 				# number_of_children = (self.population_size - len(breeders)) / (len(breeders) / 2)
 				for i in range(int(len(breeders)/2)):
-						for j in range(int(5)):
+						for j in range(int(3)):
 								offspring.append(self.create_child(breeders[i], breeders[len(breeders) - 1 - i]))
 				# print(offspring)
 				# weights = [self.convert_to_weight(i, self.robot_array[0].DNA) for i in offspring]
-				self.robot_array.extend([Robot(200, 300, 8, 360, 9, all) for i in range(self.population_size)])
-				for i in range(self.population_size):
-						if self.robot_array[i].alive:
-								self.robot_array[i].DNA = offspring[i]
+				# This is stupid Implementation change it, Should be able to choose DNA upon instantiation
+				self.robot_array.extend([Robot(50, 300, 8, 360, 9, all) for i in range(self.population_size)])
+				# for i in range(self.population_size):
+				# 		if self.robot_array[i].alive:
+				# 				self.robot_array[i].DNA = offspring[i]
 				# print(self.robot_array)
 
 
@@ -160,11 +165,11 @@ class Darwin:
 
 darwin = Darwin(robot_array=robots, elitism=4, mutation_rate=1)
 
-
+c = 0
 
 if __name__ == '__main__':
 
-		running = False
+		running = True
 		while running:
 				for event in pygame.event.get():
 						if event.type == pygame.QUIT:
@@ -183,8 +188,10 @@ if __name__ == '__main__':
 						robot.update()
 						robot.evaluate_fitness()
 				if darwin.check_if_all_dead():
-						# darwin.choose_fittest() # no reason to actually call this here, since make_next_generation calls this function
 						darwin.make_next_generation()
+						# c+=1
+						# print(c)
+
 
 				pygame.display.update()
 				# pygame.time.Clock().tick(10000)

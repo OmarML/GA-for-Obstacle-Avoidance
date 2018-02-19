@@ -11,6 +11,8 @@ class Robot:
 		def __init__(self, x, y, size, field_of_view, num_sensors, manager):
 				self.x = x
 				self.y = y
+				self.start_x = x
+				self.start_y = y
 				self.size = size
 				self.colour = (255, 255, 255)
 				self.max_range = 75
@@ -53,21 +55,25 @@ class Robot:
 								sensor.draw_sensor(self)
 								sensor.detect(self.manager)
 								sensor.collide(self, self.manager)
-				if time.time() - self.time_alive > 20: # add condition to check if fitness isnt changing much not just time for killing
+				if time.time() - self.time_alive > 35: # add condition to check if fitness isnt changing much not just time for killing
 						self.alive = False
 								# sensor.evaluate_fitness(self)
 						# print([sensor.reading for sensor in self.sensors])
 						# print("Sensor reading {} is:{}".format(sensor.id, sensor.reading)) # need to think about this line
 
 		def evaluate_fitness(self):
-				robot_pos = Vec2d(self.x, self.y)
-				target_pos = (800, 300)
-				# print(1 / robot_pos.get_distance(target_pos))
-				# pygame.draw.line(screen, (0, 255, 0), (self.x, self.y), (800, 300))
-				try:
-					self.fitness = 1 / robot_pos.get_distance(target_pos)
-				except ZeroDivisionError:
-						self.fitness = 1
+				if self.alive:
+						target_pos = Vec2d(800, 300)
+						start = Vec2d(self.start_x, self.start_y)
+						robot_pos = Vec2d(self.x, self.y)
+						total = start.get_distance(target_pos)
+						distance = robot_pos.get_distance(target_pos)
+						# print( (total - distance) / (total) )
+						# pygame.draw.line(screen, (0, 255, 0), (self.x, self.y), (800, 300))
+						try:
+							self.fitness = (total - distance) / total
+						except ZeroDivisionError:
+								self.fitness = 1
 
 
 
