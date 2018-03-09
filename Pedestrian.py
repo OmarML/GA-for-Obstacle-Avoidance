@@ -10,7 +10,7 @@ background_colour = (0, 0, 0)
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Omar's Simulation")
 screen.fill(background_colour)
-target_location = (800, 300)
+target_location = (800, 200)
 
 
 class Pedestrian:
@@ -107,7 +107,7 @@ class Darwin:
 				if max_fitness > self.best_fitness:
 						self.best_fitness = max_fitness
 				print("Highest fitness is: {}".format(self.best_fitness))
-				return self.robot_array[:-elitism]
+				return self.robot_array[(self.population_size - self.elitism):]
 				# upper_limit = sum([robot.fitness for robot in self.robot_array])
 				# pick = random.uniform(0, upper_limit)
 				# current = 0
@@ -117,7 +117,7 @@ class Darwin:
 				# 				print('here')
 				# 				return robot
 				# 		else:
-				# 				print('not here')
+				# 				return self.choose_parents()
 
 		def convert_to_genome(self, weights_array):
 				return np.concatenate([np.ravel(i) for i in weights_array])
@@ -158,7 +158,14 @@ class Darwin:
 				for i in range(int(len(breeders)/2)):
 						for j in range(int(5)):
 								offspring.append(self.create_child(breeders[i], breeders[len(breeders) - 1 - i]))
-				self.robot_array.extend(offspring)
+				# print([np.array_equal(offspring[i].brain.weights, offspring[i+1].brain.weights) for i in range(len(offspring)-1)])
+				print("Breeders:", len(breeders))
+				print("Offspring:", len(offspring))
+				print("Robot array")
+				print(self.robot_array)
+				print("offspring")
+				print(offspring)
+				self.robot_array = offspring
 				# print(len(offspring))
 				# weights = [self.convert_to_weight(i, self.robot_array[0].DNA) for i in offspring]
 				# This is stupid Implementation change it, Should be able to choose DNA upon instantiation
@@ -198,11 +205,11 @@ if __name__ == '__main__':
 				pygame.draw.rect(screen, (255, 255, 255), (10, 10, width-20, height-20), 1)
 				pygame.draw.circle(screen, (255, 10, 0), target_location, 10, 0)
 				# pygame.draw.polygon(screen, (255, 255, 255), new_list, 1)
-				for pedestrian in all.start_pedestrians:
-						pedestrian.move()
-						pedestrian.update()
-						all.introduce()
-				for robot in robots:
+				# for pedestrian in all.start_pedestrians:
+				# 		pedestrian.move()
+				# 		pedestrian.update()
+				# 		all.introduce()
+				for robot in darwin.robot_array:
 						robot.move()
 						robot.update()
 						robot.evaluate_fitness()

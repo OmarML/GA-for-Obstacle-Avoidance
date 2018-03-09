@@ -24,9 +24,9 @@ class Robot:
 				self.alive = True
 				self.set_weights = set_weights
 				if own_weights:
-						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2, given_weights=set_weights, fresh=True)
+						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2, given_weights=set_weights)
 				else:
-						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2, given_weights=None) # this will be the neural network which makes the decision based on sensor inputs
+						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2, given_weights=self.create_weights(num_sensors, 16, 2, 2)) # this will be the neural network which makes the decision based on sensor inputs
 				self.DNA = self.brain.weights # this will be an array which contains the all weights of the NN
 				self.fitness = 0
 				self.time_alive = time.time()
@@ -41,6 +41,16 @@ class Robot:
 						self.sensors.append(Sensor(self.x, self.y, self.size, -angle, self.max_range, id))
 						angle += angle_const
 						id += 1
+
+		def create_weights(self, inputs, hidden_neurons, hidden_layers, outputs):
+				w1 = np.random.randn(inputs, hidden_neurons)
+				wl = np.random.randn(hidden_neurons, outputs)
+				self.weights = []
+				self.weights.append(w1)
+				for i in range(hidden_layers - 1):
+						self.weights.append(np.random.randn(hidden_neurons, hidden_neurons))
+				self.weights.append(wl)
+				return self.weights
 
 		def move(self):
 				if self.alive:
@@ -57,7 +67,7 @@ class Robot:
 						pygame.draw.circle(screen, self.colour, (int(self.x), int(self.y)), self.size, 0)
 						for sensor in self.sensors:
 								sensor.draw_sensor(self)
-								sensor.detect(self.manager)
+								# sensor.detect(self.manager)
 								sensor.collide(self, self.manager)
 				if time.time() - self.time_alive > 35: # add condition to check if fitness isnt changing much not just time for killing
 						self.alive = False
@@ -67,14 +77,16 @@ class Robot:
 
 		def evaluate_fitness(self):
 				if self.alive:
-						target_pos = Vec2d(800, 300)
+						target_pos = Vec2d(800, 200)
 						start = Vec2d(self.start_x, self.start_y)
 						robot_pos = Vec2d(self.x, self.y)
+						angle = robot_pos.get_angle_between(target_pos)
 						total = start.get_distance(target_pos)
 						distance = robot_pos.get_distance(target_pos)
 						# print( (total - distance) / (total) )
-						# pygame.draw.line(screen, (0, 255, 0), (self.x, self.y), (800, 300))
+						pygame.draw.line(screen, (0, 255, 0), (self.x, self.y), (800, 200))
 						try:
+								# self.fitness = 1/(distance*m.cos(m.radians(angle)))
 							self.fitness = (total - distance) / total
 						except ZeroDivisionError:
 								self.fitness = 1
@@ -146,12 +158,15 @@ class Sensor:
 
 		def collide(self, robot, manager):
 				robot_pos = Vec2d(robot.x, robot.y)
-				for pedestrian in manager.start_pedestrians:
-						pedestrian_pos = Vec2d(pedestrian.x + width/2, pedestrian.y + height/2)
-						distance = robot_pos.get_distance(pedestrian_pos)
-						if distance <= robot.size + pedestrian.size:
-								robot.alive = False
+				# for pedestrian in manager.start_pedestrians:
+				# 		pedestrian_pos = Vec2d(pedestrian.x + width/2, pedestrian.y + height/2)
+				# 		distance = robot_pos.get_distance(pedestrian_pos)
+				# 		if distance <= robot.size + pedestrian.size:
+				# 				robot.alive = False
 				if robot.x <= 10 or robot.y <= 10 or robot.y >= height-20 or robot.x >= width -20 :
+						robot.alive = False
+				target_distance = robot_pos.get_distance(Vec2d(800, 200))
+				if target_distance <= robot.size + 10:
 						robot.alive = False
 
 		# def evaluate_fitness(self, robot):
