@@ -5,12 +5,16 @@ import functools
 
 
 class NeuralNetwork:
-		def __init__(self, inputs, hidden_layers, hidden_neurons, outputs):
+		def __init__(self, inputs, hidden_layers, hidden_neurons, outputs, given_weights, fresh=False):
 				self.inputs = inputs
 				self.hidden_layers = hidden_layers
 				self.hidden_neurons = hidden_neurons
 				self.outputs = outputs
-				self.weights = self.create_weights()
+				self.given_weights = given_weights
+				if fresh:
+						self.weights = self.set_weights()
+				else:
+						self.weights = self.create_weights()
 
 		def activation(self, z, logistic=False, htan=False):
 				if logistic:
@@ -26,6 +30,10 @@ class NeuralNetwork:
 				for i in range(self.hidden_layers - 1):
 						self.weights.append(np.random.randn(self.hidden_neurons, self.hidden_neurons))
 				self.weights.append(wl)
+				return self.weights
+
+		def set_weights(self):
+				self.weights = self.given_weights
 				return self.weights
 
 		def forward(self, X):
@@ -58,32 +66,40 @@ def convert_to_weights(genome, weights_array):
 
 
 
+g = [np.array([[-0.93505587,  0.9224942 ,  1.9651044 ],
+       [ 0.31516236, -2.59470964,  1.19106615],
+       [-1.43315243, -0.1763587 , -1.52025321],
+       [ 0.07718855, -0.34538581,  0.56921631]]), np.array([[-1.52457222,  0.47035277],
+       [-1.19483094,  0.97760238],
+       [-1.03914763,  0.03431391]])]
+
 
 
 
 if __name__ == '__main__':
-		nn = NeuralNetwork(inputs=4, hidden_layers=1, hidden_neurons=3, outputs=2)
+		nn = NeuralNetwork(inputs=4, hidden_layers=1, hidden_neurons=3, outputs=2, given_weights=g, fresh=True)
 		a = nn.weights
-		print(nn.forward([21, 34, 55, 12]))
-		print(a)
-		nn.weights = [np.array([[-0.18569203, -1.15955254,  0.98317866],
-       [-0.6967923 ,  0.68024923, -0.15005902],
-       [ 0.6443928 , -2.061897  ,  1.10600649],
-       [ 1.59231743, -2.21725663, -1.20812529]]), np.array([[-0.21087811, -0.59785633],
-       [-0.07869691,  0.04648555],
-       [-1.10778754,  1.7161734 ]])]
-
+		# print(a)
 		print(nn.weights)
-		print(nn.forward([21, 34, 55, 12]))
+		# nn.weights = [np.array([[-0.18569203, -1.15955254,  0.98317866],
+     #   [-0.6967923 ,  0.68024923, -0.15005902],
+     #   [ 0.6443928 , -2.061897  ,  1.10600649],
+     #   [ 1.59231743, -2.21725663, -1.20812529]]), np.array([[-0.21087811, -0.59785633],
+     #   [-0.07869691,  0.04648555],
+     #   [-1.10778754,  1.7161734 ]])]
+		print(nn.weights)
+		# print(a)
+		# print(nn.forward([21, 34, 55, 12]))
+		# print(nn.forward([21, 34, 55, 12]))
 		genome = convert_to_genome(a)
 		print(genome)
 		weights = convert_to_weights(genome, a)
 		print(weights)
-		# print(np.array_equal(a, weights))
-		print(np.array_equal(weights[0], a[0]))
-		print(np.array_equal(weights[1], a[1]))
+		print(np.array_equal(a, weights))
+		# print(np.array_equal(weights[0], a[0]))
+		# print(np.array_equal(weights[1], a[1]))
 		# print(np.array_equal(weights[2], a[2]))
-		print(a is type(weights))
+		# print(a is type(weights))
 # 		print(len(a))
 # 		shapes = ([np.shape(i) for i in a])
 # 		# print(shapes)
@@ -103,3 +119,5 @@ if __name__ == '__main__':
 # 		# print(np.array_equal(d, a[1]))
 # 		# print(np.array_equal(e, a[2]))
 # # print(nn.forward([55,0.03,0.3,9]))
+
+# array([-0.84544668,  0.79015025])

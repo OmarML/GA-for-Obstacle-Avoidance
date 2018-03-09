@@ -31,6 +31,20 @@ def Get_Pedestrian_IDs(file):
 	return Pedestrian_IDs
 
 
+def check_rows(file):
+		data = open(file)
+		reader = csv.reader(data)
+		count = 0
+		for row in reader:
+				if count == 1:
+						print(row[0])
+				if count == 1048575:
+						print(row[0])
+				count += 1
+		return count
+
+
+
 # Pedestrian_IDs = Get_Pedestrian_IDs(myfile)
 # pickle_out = open("pedestrianIDs.pickle", "wb")
 # pickle.dump(Pedestrian_IDs, pickle_out)

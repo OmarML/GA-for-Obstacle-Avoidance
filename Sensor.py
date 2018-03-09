@@ -8,7 +8,7 @@ import time
 from Vec2d import Vec2d
 
 class Robot:
-		def __init__(self, x, y, size, field_of_view, num_sensors, manager):
+		def __init__(self, x, y, size, field_of_view, num_sensors, manager, set_weights, own_weights=False):
 				self.x = x
 				self.y = y
 				self.start_x = x
@@ -22,9 +22,13 @@ class Robot:
 				self.speed = random.random()
 				self.angle = random.uniform(-0.5, 0.5)
 				self.alive = True
-				self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2) # this will be the neural network which makes the decision based on sensor inputs
+				self.set_weights = set_weights
+				if own_weights:
+						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2, given_weights=set_weights, fresh=True)
+				else:
+						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2, given_weights=None) # this will be the neural network which makes the decision based on sensor inputs
 				self.DNA = self.brain.weights # this will be an array which contains the all weights of the NN
-				self.fitness = None
+				self.fitness = 0
 				self.time_alive = time.time()
 
 				angle = field_of_view / num_sensors
@@ -40,8 +44,8 @@ class Robot:
 
 		def move(self):
 				if self.alive:
-					self.x += 2*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
-					self.y += 2*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
+					self.x += 4*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
+					self.y += 4*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
 					self.robot_angle += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[1] # this changes between -1 and 1 degrees per decision
 				# 	print(self.brain.forward([(sensor.reading) for sensor in self.sensors]))
 				# 	self.x += self.speed * m.cos(m.radians(self.robot_angle))

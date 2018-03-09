@@ -13,8 +13,6 @@ screen.fill(background_colour)
 target_location = (800, 300)
 
 
-
-
 class Pedestrian:
 		def __init__(self, x, y, size, id, trajectory):
 				self.x = x
@@ -79,7 +77,7 @@ elitism = 4
 
 robots = []
 for i in range(population_size):
-	robots.append(Robot(50, 300, 8, 360, 9, all))
+	robots.append(Robot(50, 300, 8, 360, 9, all, set_weights=None))
 
 
 # some class here maybe to manage all robots
@@ -92,28 +90,34 @@ class Darwin:
 				self.mutation_rate = mutation_rate
 				self.best_fitness = 0
 				self.number_of_parents = 4
+				self.dead_count = 0
 
 		def check_if_all_dead(self):
-				dead_count = 0
+				self.dead_count = 0
 				for robot in self.robot_array:
 						if not robot.alive:
-								dead_count += 1
-				if dead_count == len(self.robot_array):
+								self.dead_count += 1
+				if self.dead_count == len(self.robot_array):
 						return True
+				# print(self.dead_count)
 
 		def choose_parents(self):
-				# self.robot_array.sort(key=lambda x: x.fitness)
+				self.robot_array.sort(key=lambda x: x.fitness)
 				max_fitness = max([robot.fitness for robot in self.robot_array])
 				if max_fitness > self.best_fitness:
 						self.best_fitness = max_fitness
 				print("Highest fitness is: {}".format(self.best_fitness))
-				upper_limit = sum([robot.fitness for robot in self.robot_array])
-				pick = random.uniform(0, upper_limit)
-				current = 0
-				for robot in self.robot_array:
-						current += robot.fitness
-						if current > pick:
-								return robot
+				return self.robot_array[:-elitism]
+				# upper_limit = sum([robot.fitness for robot in self.robot_array])
+				# pick = random.uniform(0, upper_limit)
+				# current = 0
+				# for robot in self.robot_array:
+				# 		current += robot.fitness
+				# 		if current > pick:
+				# 				print('here')
+				# 				return robot
+				# 		else:
+				# 				print('not here')
 
 		def convert_to_genome(self, weights_array):
 				return np.concatenate([np.ravel(i) for i in weights_array])
@@ -129,35 +133,50 @@ class Darwin:
 				return out
 
 		def create_child(self, parent1, parent2):  # Uniform crossover
-				parent1_genome = self.convert_to_genome(parent1.DNA)
-				parent2_genome = self.convert_to_genome(parent2.DNA)
+				parent1_genome = self.convert_to_genome(parent1.brain.weights)  # but is DNA actually being updated over time (over the generations)
+				parent2_genome = self.convert_to_genome(parent2.brain.weights)
 				child_genome = []
 				for i in range(len(parent1_genome)):
 						if random.random() > 0.5:
 								child_genome.append(parent1_genome[i])
 						else:
 								child_genome.append(parent2_genome[i])
-				return self.convert_to_weight(child_genome, parent1.DNA) # the return value is a weights array
+				child_weights = self.convert_to_weight(child_genome, parent1.brain.weights) # the return value is a weights array
+				# return child_weights
+				return Robot(50, 300, 8, 360, 9, all, child_weights, own_weights=True)
 
 		def make_next_generation(self):
-				breeders = []
-				for i in range(self.number_of_parents):
-						breeders.append(self.choose_parents())
+				breeders = self.choose_parents()
+				# breeders = []
+				# for i in range(self.number_of_parents):
+				# 		breeders.append(self.choose_parents())
+				# print(breeders)
 				# offspring = [self.convert_to_genome(self.robot_array[i].DNA) for i in range(len(breeders))]
 				offspring = [] # need to include breeders in offspring list i.e parents from nth gen should be in the n+1th generation
-				offspring += breeders # Include parents in the n+1th generation
+				# offspring += breeders # Include parents in the n+1th generation
 				# number_of_children = (self.population_size - len(breeders)) / (len(breeders) / 2)
 				for i in range(int(len(breeders)/2)):
-						for j in range(int(3)):
+						for j in range(int(5)):
 								offspring.append(self.create_child(breeders[i], breeders[len(breeders) - 1 - i]))
-				# print(offspring)
+				self.robot_array.extend(offspring)
+				# print(len(offspring))
 				# weights = [self.convert_to_weight(i, self.robot_array[0].DNA) for i in offspring]
 				# This is stupid Implementation change it, Should be able to choose DNA upon instantiation
-				self.robot_array.extend([Robot(50, 300, 8, 360, 9, all) for i in range(self.population_size)])
+				# self.robot_array.clear()
+				# print(self.robot_array)
+				# for i in range(len(offspring)):
+				# 		self.robot_array.extend(offspring[i])
+				# print(self.robot_array)
+				# self.robot_array = offspring
+				# [print(offspring[i].alive) for i in range(len(offspring))]
+				# self.robot_array.extend([Robot(50, 300, 8, 360, 9, all) for i in range(self.population_size)])
 				# for i in range(self.population_size):
 				# 		if self.robot_array[i].alive:
-				# 				self.robot_array[i].DNA = offspring[i]
+				# 				self.robot_array[i].brain.weights = offspring[i]  # hmmmm?
 				# print(self.robot_array)
+				self.generation += 1
+				# self.dead_count = 0
+				print("Generation ", self.generation)
 
 
 
@@ -168,6 +187,7 @@ darwin = Darwin(robot_array=robots, elitism=4, mutation_rate=1)
 c = 0
 
 if __name__ == '__main__':
+		# begin = input("Press any letter to begin")
 
 		running = True
 		while running:
@@ -179,7 +199,6 @@ if __name__ == '__main__':
 				pygame.draw.circle(screen, (255, 10, 0), target_location, 10, 0)
 				# pygame.draw.polygon(screen, (255, 255, 255), new_list, 1)
 				for pedestrian in all.start_pedestrians:
-						pass
 						pedestrian.move()
 						pedestrian.update()
 						all.introduce()
@@ -189,8 +208,6 @@ if __name__ == '__main__':
 						robot.evaluate_fitness()
 				if darwin.check_if_all_dead():
 						darwin.make_next_generation()
-						# c+=1
-						# print(c)
 
 
 				pygame.display.update()
