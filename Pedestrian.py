@@ -10,7 +10,7 @@ background_colour = (0, 0, 0)
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Omar's Simulation")
 screen.fill(background_colour)
-target_location = (800, 200)
+target_location = (700, 300)
 
 
 class Pedestrian:
@@ -145,6 +145,17 @@ class Darwin:
 				# return child_weights
 				return Robot(50, 300, 8, 360, 9, all, child_weights, own_weights=True)
 
+		def mutate(self, individual):
+				genome = self.convert_to_genome(individual.brain.weights)
+				weight_to_mutate = random.randint(0, len(genome))
+				genome[weight_to_mutate] = genome[weight_to_mutate] * random.uniform(0.9, 1.1)
+				new_weights = self.convert_to_weight(genome, individual.brain.weights)
+				return Robot(50, 300, 8, 360, 9, all, new_weights, own_weights=True)
+
+
+				# code for mutation goes here
+
+
 		def make_next_generation(self):
 				breeders = self.choose_parents()
 				# breeders = []
@@ -157,14 +168,19 @@ class Darwin:
 				# number_of_children = (self.population_size - len(breeders)) / (len(breeders) / 2)
 				for i in range(int(len(breeders)/2)):
 						for j in range(int(5)):
-								offspring.append(self.create_child(breeders[i], breeders[len(breeders) - 1 - i]))
+								offspring.append(self.create_child(breeders[i], breeders[len(breeders) - 1 - i])) # make best parents breed with eachother
 				# print([np.array_equal(offspring[i].brain.weights, offspring[i+1].brain.weights) for i in range(len(offspring)-1)])
+				for i in range(len(offspring)):
+						if random.uniform(0, 1)  <= self.mutation_rate:
+								offspring[i] = self.mutate(offspring[i])
+								print("mutated")
+
 				print("Breeders:", len(breeders))
 				print("Offspring:", len(offspring))
-				print("Robot array")
-				print(self.robot_array)
-				print("offspring")
-				print(offspring)
+				# print("Robot array")
+				# print(self.robot_array)
+				# print("offspring")
+				# print(offspring)
 				self.robot_array = offspring
 				# print(len(offspring))
 				# weights = [self.convert_to_weight(i, self.robot_array[0].DNA) for i in offspring]
@@ -189,7 +205,7 @@ class Darwin:
 
 
 
-darwin = Darwin(robot_array=robots, elitism=4, mutation_rate=1)
+darwin = Darwin(robot_array=robots, elitism=4, mutation_rate=0.2)
 
 c = 0
 
@@ -204,6 +220,8 @@ if __name__ == '__main__':
 				screen.fill(background_colour)
 				pygame.draw.rect(screen, (255, 255, 255), (10, 10, width-20, height-20), 1)
 				pygame.draw.circle(screen, (255, 10, 0), target_location, 10, 0)
+				pygame.draw.circle(screen, (0, 0, 255), (500, 300), 100, 0)
+				pygame.draw.circle(screen, (0, 255, 20), (200, 300), 75, 0)
 				# pygame.draw.polygon(screen, (255, 255, 255), new_list, 1)
 				# for pedestrian in all.start_pedestrians:
 				# 		pedestrian.move()

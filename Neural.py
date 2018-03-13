@@ -60,7 +60,7 @@ g = [np.array([[-0.93505587,  0.9224942 ,  1.9651044 ],
 
 
 if __name__ == '__main__':
-		nn = NeuralNetwork(inputs=4, hidden_layers=1, hidden_neurons=3, outputs=2, given_weights=g, fresh=True)
+		nn = NeuralNetwork(inputs=4, hidden_layers=1, hidden_neurons=3, outputs=2, given_weights=g)
 		a = nn.weights
 		# print(a)
 		print(nn.weights)
@@ -75,6 +75,8 @@ if __name__ == '__main__':
 		# print(nn.forward([21, 34, 55, 12]))
 		# print(nn.forward([21, 34, 55, 12]))
 		genome = convert_to_genome(a)
+		print(len(genome))
+		print(genome[random.randint(0, len(genome))])
 		print(genome)
 		weights = convert_to_weights(genome, a)
 		print(weights)

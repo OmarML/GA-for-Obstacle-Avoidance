@@ -20,16 +20,16 @@ class Robot:
 				self.robot_angle = 0 # robot's orientation make sensor class take this into account
 				self.manager = manager
 				self.speed = random.random()
-				self.angle = random.uniform(-0.5, 0.5)
 				self.alive = True
 				self.set_weights = set_weights
 				if own_weights:
-						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2, given_weights=set_weights)
+						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=3, hidden_neurons=16, outputs=2, given_weights=set_weights)
 				else:
-						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=2, hidden_neurons=16, outputs=2, given_weights=self.create_weights(num_sensors, 16, 2, 2)) # this will be the neural network which makes the decision based on sensor inputs
+						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=3, hidden_neurons=16, outputs=2, given_weights=self.create_weights(num_sensors, 16, 3, 2)) # this will be the neural network which makes the decision based on sensor inputs
 				self.DNA = self.brain.weights # this will be an array which contains the all weights of the NN
 				self.fitness = 0
 				self.time_alive = time.time()
+				self.best = 1e6
 
 				angle = field_of_view / num_sensors
 				angle_const = field_of_view / num_sensors
@@ -54,10 +54,26 @@ class Robot:
 
 		def move(self):
 				if self.alive:
-					self.x += 4*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
-					self.y += 4*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
-					self.robot_angle += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[1] # this changes between -1 and 1 degrees per decision
-				# 	print(self.brain.forward([(sensor.reading) for sensor in self.sensors]))
+						robot_pos = Vec2d(self.x, self.y)
+						target_pos = Vec2d(700, 300)
+						angle_between = target_pos.get_angle_between(robot_pos)
+						angle_out = self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[1]
+						# self.robot_angle = np.interp(angle_out, [-1, 1], [-60, 60])
+						triggered = False
+						for sensor in self.sensors:
+								if sensor.reading < self.max_range:
+										triggered = True
+						if triggered:
+								self.robot_angle = np.interp(angle_out, [-1, 1], [-60, 60])
+						else:
+								delta_y = 300 - self.y
+								delta_x = 700 - self.x
+								self.robot_angle = m.degrees(m.atan(delta_y/delta_x))
+						self.robot_angle += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[1] # this changes between -1 and 1 degrees per decision
+						self.x += 4*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
+						self.y += 4*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
+				# 	self.robot_angle += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[1] # this changes between -1 and 1 degrees per decision
+				# 		print(self.brain.forward([(sensor.reading) for sensor in self.sensors]))
 				# 	self.x += self.speed * m.cos(m.radians(self.robot_angle))
 				# 	self.y += self.speed * m.sin(m.radians(self.robot_angle))
 				# 	self.robot_angle += self.angle
@@ -69,7 +85,9 @@ class Robot:
 								sensor.draw_sensor(self)
 								# sensor.detect(self.manager)
 								sensor.collide(self, self.manager)
-				if time.time() - self.time_alive > 35: # add condition to check if fitness isnt changing much not just time for killing
+								sensor.detect_static()
+								sensor.detect_static2()
+				if time.time() - self.time_alive > 15: # add condition to check if fitness isnt changing much not just time for killing
 						self.alive = False
 								# sensor.evaluate_fitness(self)
 						# print([sensor.reading for sensor in self.sensors])
@@ -77,19 +95,26 @@ class Robot:
 
 		def evaluate_fitness(self):
 				if self.alive:
-						target_pos = Vec2d(800, 200)
+						target_pos = Vec2d(700, 300)
 						start = Vec2d(self.start_x, self.start_y)
 						robot_pos = Vec2d(self.x, self.y)
 						angle = robot_pos.get_angle_between(target_pos)
 						total = start.get_distance(target_pos)
 						distance = robot_pos.get_distance(target_pos)
-						# print( (total - distance) / (total) )
-						pygame.draw.line(screen, (0, 255, 0), (self.x, self.y), (800, 200))
+						closest = total
+						# completion_time = self.sensors[0].completion_time
+						if distance < self.best:
+								self.best = distance
+						# print(self.best)
 						try:
+								# self.fitness = (1 / self.best)
 								# self.fitness = 1/(distance*m.cos(m.radians(angle)))
-							self.fitness = (total - distance) / total
+								self.fitness = (1 / distance) + (0.5*(1 / self.best))
+								# self.fitness = distance
+								# self.fitness = (total - distance) / total
 						except ZeroDivisionError:
-								self.fitness = 1
+								print("tried dividing by zero")
+								self.fitness = 100
 
 
 
@@ -107,6 +132,7 @@ class Sensor:
 				self.x1 = 0
 				self.x1 = 0
 				self.y1 = 0
+				# self.completion_time = time.time()
 
 		def update_sensor_pos(self, robot):
 				self.x0 = robot.x + self.radius * m.cos(m.radians(self.angle+robot.robot_angle)) # do robot_angle + self.angle here
@@ -149,12 +175,65 @@ class Sensor:
 										# print("Sensor {}s reading is {}".format(self.id, self.max_range))
 										self.reading = self.max_range
 						# print("Sensor {}s reading is {}".format(self.id, self.reading))
-						# else:
-						# 		self.reading = self.max_range # need to think about this line
+						else:
+								self.reading = self.max_range # need to think about this line
+
+				return self.reading
 
 
 
 						# print ("Sensor {}'s reading is: {}".format(self.id, self.reading))
+
+
+		def detect_static(self):
+				q = Vec2d(500, 300)
+				r = 100
+				v = Vec2d(self.x1, self.y1) - Vec2d(self.x0, self.y0)
+				p = Vec2d(self.x0, self.y0)
+				A = v.dot(v)
+				B = 2*(v.dot((p-q)))
+				C = p.dot(p) + q.dot(q) - ((2 * p).dot(q)) - r ** 2
+				if (B ** 2 - 4 * A * C) >= 0:  # Sensors delayed updating could be something to do with this line
+						x_solution = np.roots([A, B, C])
+						if 0 <= x_solution[0] <= 1 or 0 <= x_solution[1] <= 1:
+								y_solution = [p + x_solution[0] * v, p + x_solution[1] * v]
+								# pygame.draw.line(screen, (255, 0, 0), (self.x0, self.y0), (self.x1, self.y1))
+								pygame.draw.circle(screen, (0, 255, 0), (int(y_solution[1][0]), int(y_solution[1][1])), 1, 0)  # here
+								pygame.draw.line(screen, (0, 255, 0), (self.x0, self.y0), (y_solution[1][0], y_solution[1][1]))
+								# print("Sensor {}s reading is {}".format(self.id, p.get_distance(y_solution[1])))
+								self.reading = p.get_distance(y_solution[1])
+						else:
+								# print("Sensor {}s reading is {}".format(self.id, self.max_range))
+								self.reading = self.max_range
+				else:
+						self.reading = self.max_range
+				return self.reading
+
+		def detect_static2(self):
+				q = Vec2d(200, 300)
+				r = 75
+				v = Vec2d(self.x1, self.y1) - Vec2d(self.x0, self.y0)
+				p = Vec2d(self.x0, self.y0)
+				A = v.dot(v)
+				B = 2*(v.dot((p-q)))
+				C = p.dot(p) + q.dot(q) - ((2 * p).dot(q)) - r ** 2
+				if (B ** 2 - 4 * A * C) >= 0:  # Sensors delayed updating could be something to do with this line
+						x_solution = np.roots([A, B, C])
+						if 0 <= x_solution[0] <= 1 or 0 <= x_solution[1] <= 1:
+								y_solution = [p + x_solution[0] * v, p + x_solution[1] * v]
+								# pygame.draw.line(screen, (255, 0, 0), (self.x0, self.y0), (self.x1, self.y1))
+								pygame.draw.circle(screen, (0, 255, 0), (int(y_solution[1][0]), int(y_solution[1][1])), 1, 0)  # here
+								pygame.draw.line(screen, (0, 255, 0), (self.x0, self.y0), (y_solution[1][0], y_solution[1][1]))
+								# print("Sensor {}s reading is {}".format(self.id, p.get_distance(y_solution[1])))
+								self.reading = p.get_distance(y_solution[1])
+						else:
+								# print("Sensor {}s reading is {}".format(self.id, self.max_range))
+								self.reading = self.max_range
+				else:
+						self.reading = self.detect_static()
+
+
+
 
 		def collide(self, robot, manager):
 				robot_pos = Vec2d(robot.x, robot.y)
@@ -165,8 +244,16 @@ class Sensor:
 				# 				robot.alive = False
 				if robot.x <= 10 or robot.y <= 10 or robot.y >= height-20 or robot.x >= width -20 :
 						robot.alive = False
-				target_distance = robot_pos.get_distance(Vec2d(800, 200))
+				target_distance = robot_pos.get_distance(Vec2d(700, 300))
+				obstacle_distance = robot_pos.get_distance(Vec2d(500, 300))
+				obstacle_distance2 = robot_pos.get_distance(Vec2d(200, 300))
 				if target_distance <= robot.size + 10:
+						robot.alive = False
+						# self.completion_time -= time.time()*(-1)
+						# print(self.completion_time)
+				if obstacle_distance <= robot.size + 100:
+						robot.alive = False
+				if obstacle_distance2 <= robot.size + 75:
 						robot.alive = False
 
 		# def evaluate_fitness(self, robot):
