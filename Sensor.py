@@ -175,12 +175,15 @@ class Sensor:
 										# print("Sensor {}s reading is {}".format(self.id, self.max_range))
 										self.reading = self.max_range
 						# print("Sensor {}s reading is {}".format(self.id, self.reading))
-						else:
-								self.reading = self.max_range # need to think about this line
+						# else:
+						# 		self.reading = self.reset_sensor()
+								# self.reading = self.max_range # need to think about this line
+				print("Sensor {}s reading is {}".format(self.id, self.reading))
 
+
+		def reset_sensor(self):
+				self.reading = self.max_range
 				return self.reading
-
-
 
 						# print ("Sensor {}'s reading is: {}".format(self.id, self.reading))
 
