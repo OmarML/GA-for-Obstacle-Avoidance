@@ -5,36 +5,19 @@ import functools
 
 
 class NeuralNetwork:
-		def __init__(self, inputs, hidden_layers, hidden_neurons, outputs, given_weights, fresh=False):
+		def __init__(self, inputs, hidden_layers, hidden_neurons, outputs, given_weights):
 				self.inputs = inputs
 				self.hidden_layers = hidden_layers
 				self.hidden_neurons = hidden_neurons
 				self.outputs = outputs
 				self.given_weights = given_weights
-				if fresh:
-						self.weights = self.set_weights()
-				else:
-						self.weights = self.create_weights()
+				self.weights = given_weights
 
 		def activation(self, z, logistic=False, htan=False):
 				if logistic:
 						return 1 / 1 + np.exp(-z)
 				elif htan:
 						return np.tanh(z)
-
-		def create_weights(self):
-				w1 = np.random.randn(self.inputs, self.hidden_neurons)
-				wl = np.random.randn(self.hidden_neurons, self.outputs)
-				self.weights = []
-				self.weights.append(w1)
-				for i in range(self.hidden_layers - 1):
-						self.weights.append(np.random.randn(self.hidden_neurons, self.hidden_neurons))
-				self.weights.append(wl)
-				return self.weights
-
-		def set_weights(self):
-				self.weights = self.given_weights
-				return self.weights
 
 		def forward(self, X):
 				new_X = self.activation(np.dot(X, self.weights[0]), htan=True)
@@ -77,7 +60,7 @@ g = [np.array([[-0.93505587,  0.9224942 ,  1.9651044 ],
 
 
 if __name__ == '__main__':
-		nn = NeuralNetwork(inputs=4, hidden_layers=1, hidden_neurons=3, outputs=2, given_weights=g, fresh=True)
+		nn = NeuralNetwork(inputs=4, hidden_layers=1, hidden_neurons=3, outputs=2, given_weights=g)
 		a = nn.weights
 		# print(a)
 		print(nn.weights)
@@ -92,6 +75,8 @@ if __name__ == '__main__':
 		# print(nn.forward([21, 34, 55, 12]))
 		# print(nn.forward([21, 34, 55, 12]))
 		genome = convert_to_genome(a)
+		print(len(genome))
+		print(genome[random.randint(0, len(genome))])
 		print(genome)
 		weights = convert_to_weights(genome, a)
 		print(weights)
