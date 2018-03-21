@@ -72,7 +72,7 @@ for pedestrian in Pedestrian_IDs:
 all = Manager(all_pedestrians, 15)
 
 
-population_size = 10
+population_size = 50
 elitism = 4
 
 robots = []
@@ -167,7 +167,7 @@ class Darwin:
 				# offspring += breeders # Include parents in the n+1th generation
 				# number_of_children = (self.population_size - len(breeders)) / (len(breeders) / 2)
 				for i in range(int(len(breeders)/2)):
-						for j in range(int(5)):
+						for j in range(int(25)):
 								offspring.append(self.create_child(breeders[i], breeders[len(breeders) - 1 - i])) # make best parents breed with eachother
 				# print([np.array_equal(offspring[i].brain.weights, offspring[i+1].brain.weights) for i in range(len(offspring)-1)])
 				for i in range(len(offspring)):

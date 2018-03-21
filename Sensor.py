@@ -66,9 +66,10 @@ class Robot:
 						if triggered:
 								self.robot_angle = np.interp(angle_out, [-1, 1], [-60, 60])
 						else:
-								delta_y = 300 - self.y
-								delta_x = 700 - self.x
-								self.robot_angle = m.degrees(m.atan(delta_y/delta_x))
+								self.robot_angle = np.interp(angle_out, [-1, 1], [-60, 60])
+								# delta_y = 300 - self.y
+								# delta_x = 700 - self.x
+								# self.robot_angle = m.degrees(m.atan(delta_y/delta_x))
 						self.robot_angle += self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[1] # this changes between -1 and 1 degrees per decision
 						self.x += 4*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.cos(m.radians(self.robot_angle))
 						self.y += 4*self.brain.forward([(sensor.reading/self.max_range) for sensor in self.sensors])[0] * m.sin(m.radians(self.robot_angle))
@@ -87,7 +88,7 @@ class Robot:
 								sensor.collide(self, self.manager)
 								sensor.detect_static()
 								sensor.detect_static2()
-				if time.time() - self.time_alive > 15: # add condition to check if fitness isnt changing much not just time for killing
+				if time.time() - self.time_alive > 22: # add condition to check if fitness isnt changing much not just time for killing
 						self.alive = False
 								# sensor.evaluate_fitness(self)
 						# print([sensor.reading for sensor in self.sensors])
