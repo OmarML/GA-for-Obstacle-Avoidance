@@ -2,15 +2,17 @@ import random
 import pygame
 from Pygame import width, height
 from ProcessData import My_Trajectory_Dict, Pedestrian_IDs, new_list
-from Sensor import Robot
+from Sensor import Robot, obstacleArray
 import numpy as np
+import matplotlib.pyplot as plt
 
 pygame.init()
 background_colour = (0, 0, 0)
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Omar's Simulation")
 screen.fill(background_colour)
-target_location = (700, 300)
+target_location = (800, 300)
+clock = pygame.time.Clock()
 
 
 class Pedestrian:
@@ -30,17 +32,17 @@ class Pedestrian:
 
 		def update(self):
 				if self.present:
-						pygame.draw.circle(screen, self.colour, ((int(self.x) + int(width / 2)), (int(self.y) + int(height / 2))),self.size, 0)
-					
+						pygame.draw.circle(screen, self.colour, ((int(self.x) + int(width / 2)), (int(self.y) + int(height / 2))),
+						                   self.size, 0)
+
 		def move(self):
 				if self.destination < len(self.trajectory[0]):
 						self.x = self.trajectory[0][self.destination]
 						self.y = -self.trajectory[1][self.destination]
 						self.destination += 1
-						self.paths.append([self.x + (width/2), self.y + (height/2)])
+						self.paths.append([self.x + (width / 2), self.y + (height / 2)])
 				else:
 						self.present = False
-
 
 
 class Manager(Pedestrian):
@@ -57,10 +59,23 @@ class Manager(Pedestrian):
 								for i in self.all_pedestrians:
 										if i not in self.start_pedestrians and len(self.start_pedestrians) <= self.limit:
 												self.start_pedestrians.append(i)
-								# print ([i.id for i in self.all_pedestrians[:20]])
-								# print ([i.id for i in self.start_pedestrians])
+										# print ([i.id for i in self.all_pedestrians[:20]])
+										# print ([i.id for i in self.start_pedestrians])
 
-						
+
+# class Obstacle():
+# 		def __init__(self, shape, position, colour, thickness, radius=None):
+# 				self.shape = shape
+# 				self.position = position
+# 				self.colour = colour
+# 				self.thickness = thickness
+# 				self.radius = radius
+#
+# 		def drawShape(self):
+# 				if self.shape == 'Circle':
+# 						pygame.draw.circle(screen, self.colour, self.position, self.radius, self.thickness)
+# 				elif self.shape == 'Rectangle':
+# 						pygame.draw.rect(screen, self.colour, self.position, self.thickness)
 
 
 all_pedestrians = []
@@ -71,13 +86,14 @@ for pedestrian in Pedestrian_IDs:
 
 all = Manager(all_pedestrians, 15)
 
+# obstacleArray = [Obstacle('Circle', (500, 300), (0, 0, 255), 0, 100), Obstacle('Circle', (200, 300), (0, 255, 0), 0, 75)]
 
 population_size = 50
 elitism = 4
 
 robots = []
 for i in range(population_size):
-	robots.append(Robot(50, 300, 8, 360, 9, all, set_weights=None))
+		robots.append(Robot(100, 300, 8, 360, 9, all, set_weights=None))
 
 
 # some class here maybe to manage all robots
@@ -91,6 +107,8 @@ class Darwin:
 				self.best_fitness = 0
 				self.number_of_parents = 4
 				self.dead_count = 0
+				self.x_data = []
+				self.y_data = []
 
 		def check_if_all_dead(self):
 				self.dead_count = 0
@@ -108,16 +126,17 @@ class Darwin:
 						self.best_fitness = max_fitness
 				print("Highest fitness is: {}".format(self.best_fitness))
 				return self.robot_array[(self.population_size - self.elitism):]
-				# upper_limit = sum([robot.fitness for robot in self.robot_array])
-				# pick = random.uniform(0, upper_limit)
-				# current = 0
-				# for robot in self.robot_array:
-				# 		current += robot.fitness
-				# 		if current > pick:
-				# 				print('here')
-				# 				return robot
-				# 		else:
-				# 				return self.choose_parents()
+
+		# upper_limit = sum([robot.fitness for robot in self.robot_array])
+		# pick = random.uniform(0, upper_limit)
+		# current = 0
+		# for robot in self.robot_array:
+		# 		current += robot.fitness
+		# 		if current > pick:
+		# 				print('here')
+		# 				return robot
+		# 		else:
+		# 				return self.choose_parents()
 
 		def convert_to_genome(self, weights_array):
 				return np.concatenate([np.ravel(i) for i in weights_array])
@@ -141,20 +160,16 @@ class Darwin:
 								child_genome.append(parent1_genome[i])
 						else:
 								child_genome.append(parent2_genome[i])
-				child_weights = self.convert_to_weight(child_genome, parent1.brain.weights) # the return value is a weights array
-				# return child_weights
+				child_weights = self.convert_to_weight(child_genome, parent1.brain.weights)
 				return Robot(50, 300, 8, 360, 9, all, child_weights, own_weights=True)
 
 		def mutate(self, individual):
 				genome = self.convert_to_genome(individual.brain.weights)
-				weight_to_mutate = random.randint(0, len(genome))
-				genome[weight_to_mutate] = genome[weight_to_mutate] * random.uniform(0.9, 1.1)
+				weight_to_mutate = random.randint(0, len(genome) - 1)
+				# genome[weight_to_mutate] = genome[weight_to_mutate] * random.uniform(0.5, 1.5)
+				genome[weight_to_mutate] = np.random.randn()
 				new_weights = self.convert_to_weight(genome, individual.brain.weights)
 				return Robot(50, 300, 8, 360, 9, all, new_weights, own_weights=True)
-
-
-				# code for mutation goes here
-
 
 		def make_next_generation(self):
 				breeders = self.choose_parents()
@@ -163,17 +178,19 @@ class Darwin:
 				# 		breeders.append(self.choose_parents())
 				# print(breeders)
 				# offspring = [self.convert_to_genome(self.robot_array[i].DNA) for i in range(len(breeders))]
-				offspring = [] # need to include breeders in offspring list i.e parents from nth gen should be in the n+1th generation
+				offspring = []  # need to include breeders in offspring list i.e parents from nth gen should be in the n+1th generation
 				# offspring += breeders # Include parents in the n+1th generation
 				# number_of_children = (self.population_size - len(breeders)) / (len(breeders) / 2)
-				for i in range(int(len(breeders)/2)):
+				for i in range(int(len(breeders) / 2)):
 						for j in range(int(25)):
-								offspring.append(self.create_child(breeders[i], breeders[len(breeders) - 1 - i])) # make best parents breed with eachother
+								offspring.append(self.create_child(breeders[i], breeders[len(breeders) - 1 - i]))  # make best parents breed with eachother
 				# print([np.array_equal(offspring[i].brain.weights, offspring[i+1].brain.weights) for i in range(len(offspring)-1)])
+				mutation_count = 0
 				for i in range(len(offspring)):
-						if random.uniform(0, 1)  <= self.mutation_rate:
+						if random.uniform(0, 1) <= self.mutation_rate:
 								offspring[i] = self.mutate(offspring[i])
-								print("mutated")
+								mutation_count += 1
+				print("{} mutations this generation".format(mutation_count))
 
 				print("Breeders:", len(breeders))
 				print("Offspring:", len(offspring))
@@ -201,13 +218,29 @@ class Darwin:
 				# self.dead_count = 0
 				print("Generation ", self.generation)
 
+		def get_stats(self):
+				all_fitness = []
+				for robot in self.robot_array:
+						all_fitness.append(robot.fitness)
+				avg_fitness = sum(all_fitness) / self.population_size
+				self.x_data.append(self.generation)
+				self.y_data.append(avg_fitness)
+
+		def plot_graph(self):
+				plt.plot(self.x_data, self.y_data)
+				plt.title("Average Fitness vs Generation")
+				plt.xlabel("Generation")
+				plt.ylabel("Average Fitness")
+				print(self.x_data, self.y_data)
+				plt.show()
+
 
 
 
 
 darwin = Darwin(robot_array=robots, elitism=4, mutation_rate=0.2)
 
-c = 0
+
 
 if __name__ == '__main__':
 		# begin = input("Press any letter to begin")
@@ -218,10 +251,13 @@ if __name__ == '__main__':
 						if event.type == pygame.QUIT:
 								running = False
 				screen.fill(background_colour)
-				pygame.draw.rect(screen, (255, 255, 255), (10, 10, width-20, height-20), 1)
+				pygame.draw.rect(screen, (255, 255, 255), (10, 10, width - 20, height - 20), 1)
 				pygame.draw.circle(screen, (255, 10, 0), target_location, 10, 0)
-				pygame.draw.circle(screen, (0, 0, 255), (500, 300), 100, 0)
-				pygame.draw.circle(screen, (0, 255, 20), (200, 300), 75, 0)
+				for obstacle in obstacleArray:
+						obstacle.drawShape()
+						# obstacle.move_y()
+				# pygame.draw.circle(screen, (0, 0, 255), (500, 300), 100, 0)
+				# pygame.draw.circle(screen, (0, 255, 20), (200, 300), 75, 0)
 				# pygame.draw.polygon(screen, (255, 255, 255), new_list, 1)
 				# for pedestrian in all.start_pedestrians:
 				# 		pedestrian.move()
@@ -230,10 +266,13 @@ if __name__ == '__main__':
 				for robot in darwin.robot_array:
 						robot.move()
 						robot.update()
+						robot.collide()
 						robot.evaluate_fitness()
 				if darwin.check_if_all_dead():
+						darwin.get_stats()
 						darwin.make_next_generation()
-
-
 				pygame.display.update()
-				# pygame.time.Clock().tick(10000)
+				clock.tick(30)
+		# pygame.time.Clock().tick(10000)
+
+darwin.plot_graph()

@@ -117,7 +117,7 @@ def polygon_list():
 		return data_x, data_y
 
 x, y = polygon_list()
-plt.plot(x, y)
+# plt.plot(x, y)
 # plt.show()
 
 x0 = min(x)
