@@ -255,7 +255,7 @@ if __name__ == '__main__':
 				pygame.draw.circle(screen, (255, 10, 0), target_location, 10, 0)
 				for obstacle in obstacleArray:
 						obstacle.drawShape()
-						# obstacle.move_y()
+						obstacle.move_y()
 				# pygame.draw.circle(screen, (0, 0, 255), (500, 300), 100, 0)
 				# pygame.draw.circle(screen, (0, 255, 20), (200, 300), 75, 0)
 				# pygame.draw.polygon(screen, (255, 255, 255), new_list, 1)

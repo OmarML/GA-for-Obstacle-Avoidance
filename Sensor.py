@@ -25,9 +25,9 @@ class Robot:
 				self.alive = True
 				self.set_weights = set_weights
 				if own_weights:
-						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=3, hidden_neurons=16, outputs=2, given_weights=set_weights)
+						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=1, hidden_neurons=32, outputs=2, given_weights=set_weights)
 				else:
-						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=3, hidden_neurons=16, outputs=2, given_weights=self.create_weights(num_sensors, 16, 3, 2)) # this will be the neural network which makes the decision based on sensor inputs
+						self.brain = Neural.NeuralNetwork(inputs=num_sensors, hidden_layers=1, hidden_neurons=32, outputs=2, given_weights=self.create_weights(num_sensors, 32, 1, 2)) # this will be the neural network which makes the decision based on sensor inputs
 				self.DNA = self.brain.weights # this will be an array which contains the all weights of the NN
 				self.fitness = 0
 				self.time_alive = time.time()
@@ -88,13 +88,13 @@ class Robot:
 						pygame.draw.circle(screen, self.colour, (int(self.x), int(self.y)), self.size, 0)
 						for sensor in self.sensors:
 								sensor.draw_sensor(self)
-								# for obstacle in obstacleArray:
-								# 		sensor.detectObstacle(obstacle)
+								for obstacle in obstacleArray:
+										sensor.detectObstacle(obstacle)
 								# sensor.detectBoundary()
 								# sensor.detect(self.manager)
 								# sensor.collide(self, self.manager)
-								sensor.detect_static()
-								sensor.detect_static2()
+								# sensor.detect_static()
+								# sensor.detect_static2()
 				if time.time() - self.time_alive > 10: # add condition to check if fitness isnt changing much not just time for killing
 						self.alive = False
 				if not self.alive and not self.considered:
@@ -479,14 +479,14 @@ class Obstacle():
 
 
 
-# obstacleArray = [Obstacle('Circle', [300, 300], (0, 0, 255), 0, 75)]
+obstacleArray = [Obstacle('Circle', [300, 300], (0, 0, 255), 0, 75)]
                  # Obstacle('Circle', [500, 300], (0, 0, 255), 0, 100)]
                  # Obstacle('Circle', [200, 300], (0, 255, 0), 0, 75)]
                  #Obstacle('Line', ((200, 10), (200, 148)), (255, 255, 255), 10),
                  #Obstacle('Line', ((200, 450), (200, 588)), (255, 255, 255), 10),
                  #]
 
-obstacleArray = [Obstacle('Circle', (200, 300), (0, 255, 0), 0, 75), Obstacle('Circle', (500, 300), (0, 0, 255), 0, 100)]
+# obstacleArray = [Obstacle('Circle', (200, 300), (0, 255, 0), 0, 75), Obstacle('Circle', (500, 300), (0, 0, 255), 0, 100)]
 
 
 								# def collide(self, robot, manager):
